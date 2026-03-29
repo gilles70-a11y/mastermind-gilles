@@ -17,17 +17,21 @@
             font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; text-align: center; 
             margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; 
             box-sizing: border-box; overflow: hidden;
-            /* Rialzo forzato per i tasti */
             padding-bottom: calc(30px + env(safe-area-inset-bottom)); 
         }
 
         h1 { font-size: 1.1rem; color: var(--accent); margin: 2px 0; letter-spacing: 1px; text-transform: uppercase; }
-        .stats { font-size: 0.7rem; margin-bottom: 5px; color: #a2a2c2; line-height: 1.1; }
-        
+        .stats-container { margin-bottom: 5px; z-index: 5; }
+        .stats { font-size: 0.7rem; color: #a2a2c2; line-height: 1.1; margin-bottom: 4px; }
+        .backup-btns { display: flex; justify-content: center; gap: 10px; }
+        .btn-tiny { background: none; border: 1px solid #444; color: #777; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; text-transform: none; box-shadow: none; }
+
         #game-board { 
             flex-grow: 1; max-width: 450px; margin: 0 auto; background: var(--panel); 
             padding: 8px; border-radius: 15px; overflow-y: auto; width: 100%; 
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            /* Aggiunge spazio in basso per non coprire l'ultimo tentativo quando appare l'overlay */
+            padding-bottom: 120px; 
         }
 
         .row { 
@@ -43,14 +47,10 @@
         
         .controls { 
             background: var(--bg); padding: 5px 0; width: 100%; max-width: 450px; 
-            margin: 0 auto; flex-shrink: 0;
+            margin: 0 auto; flex-shrink: 0; z-index: 10;
         }
 
-        .current-selection { 
-            display: flex; justify-content: center; gap: 8px; margin-bottom: 5px; 
-            padding: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; min-height: 28px; 
-        }
-
+        .current-selection { display: flex; justify-content: center; gap: 8px; margin-bottom: 5px; padding: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; min-height: 28px; }
         .color-picker { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
         .choice { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
         
@@ -58,21 +58,38 @@
         button { padding: 12px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
         .btn-check { background: var(--win); color: white; flex: 2; box-shadow: 0 4px 0 #2e7d32; }
         .btn-del { background: var(--loss); color: white; flex: 1; box-shadow: 0 4px 0 #c62828; }
-        /* Effetto pressione tasti */
         button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
         
+        /* Overlay Notifica Spostato in Basso */
         #overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; 
-            align-items: flex-start; padding-top: 10vh; box-sizing: border-box; backdrop-filter: blur(3px); 
+            display: none; position: fixed; 
+            bottom: calc(90px + env(safe-area-inset-bottom)); /* Posizionato sopra i controlli */
+            left: 0; width: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 100; 
+            justify-content: center; align-items: center; 
+            box-sizing: border-box; backdrop-filter: blur(2px); 
         }
-        .modal { background: var(--panel); padding: 20px; border-radius: 20px; border: 3px solid var(--accent); max-width: 85%; text-align: center; }
-        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1rem; margin-top: 15px; box-shadow: 0 4px 0 #3a9dbb; }
+        .modal { 
+            background: var(--panel); padding: 15px; border-radius: 15px; 
+            border: 3px solid var(--accent); max-width: 85%; text-align: center; 
+            box-shadow: 0 0 20px var(--accent); 
+        }
+        .modal h2 { font-size: 1.4rem; margin: 0; }
+        .modal p { font-size: 0.8rem; margin: 5px 0; color: #ccc; }
+        .secret-reveal { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
+        .secret-reveal .slot { width: 22px; height: 22px; }
+        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 0.9rem; margin-top: 8px; box-shadow: 0 4px 0 #3a9dbb; }
     </style>
 </head>
 <body>
     <h1>Mastermind Gilles</h1>
-    <div class="stats" id="win-counter"></div>
+    <div class="stats-container">
+        <div class="stats" id="win-counter"></div>
+        <div class="backup-btns">
+            <button class="btn-tiny" onclick="exportStats()">Export</button>
+            <button class="btn-tiny" onclick="importStats()">Import</button>
+        </div>
+    </div>
     <div id="game-board"></div>
     <div class="controls">
         <div class="current-selection" id="current-view"></div>
@@ -82,7 +99,7 @@
             <button class="btn-check" onclick="check()">VERIFICA</button>
         </div>
     </div>
-    <div id="overlay"><div class="modal"><h2 id="res-t"></h2><p id="att-i"></p><div class="secret-reveal" id="reveal" style="display:flex; gap:8px; justify-content:center; margin:10px 0;"></div><button class="btn-restart" onclick="reset()">Nuova Sfida</button></div></div>
+    <div id="overlay"><div class="modal"><h2 id="res-t"></h2><p id="att-i"></p><div class="secret-reveal" id="reveal"></div><button class="btn-restart" onclick="reset()">Nuova Sfida</button></div></div>
 
 <script>
     const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6'];
@@ -137,6 +154,11 @@
         if(v) { stats.w++; if(!stats.b || a < stats.b) stats.b = a; play(800,'square',0.4); } 
         else { stats.l++; play(150,'sawtooth',0.6); }
         localStorage.setItem('mm_stats', JSON.stringify(stats)); updateUI();
+        
+        // Scorri il tabellone fino in fondo per mostrare l'ultimo tentativo fatto
+        const board = document.getElementById('game-board');
+        board.scrollTop = board.scrollHeight;
+        
         document.getElementById('overlay').style.display='flex';
     }
 
@@ -148,6 +170,26 @@
         document.getElementById('overlay').style.display='none'; 
         document.getElementById('game-board').innerHTML=''; 
         init(); 
+    }
+
+    function exportStats() {
+        const data = btoa(JSON.stringify(stats));
+        navigator.clipboard.writeText(data).then(() => alert("Codice statistiche copiato! Incollalo dove vuoi per salvarlo."));
+    }
+
+    function importStats() {
+        const code = prompt("Incolla qui il codice statistiche:");
+        if(code) {
+            try {
+                const parsed = JSON.parse(atob(code));
+                if(parsed.w !== undefined) {
+                    stats = parsed;
+                    localStorage.setItem('mm_stats', JSON.stringify(stats));
+                    updateUI();
+                    alert("Statistiche importate con successo!");
+                }
+            } catch(e) { alert("Codice non valido."); }
+        }
     }
 
     window.onload = init;

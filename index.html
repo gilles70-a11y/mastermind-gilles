@@ -95,7 +95,7 @@
             padding: 10px;
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
-            min-height: 35px;
+            min-height: 40px;
         }
 
         .color-picker { 
@@ -144,7 +144,7 @@
 <body>
 
     <h1>Mastermind Gilles</h1>
-    <div class="stats" id="win-counter">Caricamento...</div>
+    <div class="stats" id="win-counter">Inizializzazione...</div>
     
     <div id="game-board"></div>
 
@@ -163,20 +163,24 @@
     let secretCode = [];
     let currentAttempt = [];
     let stats = JSON.parse(localStorage.getItem('mm_stats')) || { wins: 0, losses: 0 };
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx;
 
     function playSound(freq, type, duration) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) { console.log("Audio non supportato"); }
     }
 
     function initGame() {
@@ -184,6 +188,7 @@
         updateStatsUI();
         setupPicker();
         renderSelection();
+        console.log("Mastermind Gilles Pronto!");
     }
 
     function setupPicker() {
@@ -228,10 +233,8 @@
 
     function checkAttempt() {
         if (currentAttempt.length < 4) return;
-
         let black = 0, white = 0;
         let sCopy = [...secretCode], aCopy = [...currentAttempt];
-
         for(let i=0; i<4; i++) {
             if(aCopy[i] === sCopy[i]) { black++; sCopy[i] = aCopy[i] = null; }
         }
@@ -241,9 +244,7 @@
                 if(index !== -1) { white++; sCopy[index] = null; }
             }
         }
-
         addBoardRow(currentAttempt, black, white);
-        
         if (black === 4) {
             playSound(800, 'square', 0.3);
             setTimeout(() => { alert("🎉 Grande Gilles! Hai vinto!"); resetGame(); }, 100);
@@ -254,7 +255,6 @@
             stats.losses++;
             resetGame();
         }
-        
         currentAttempt = [];
         renderSelection();
         saveStats();
@@ -283,4 +283,21 @@
     }
 
     function exportStats() {
-        const blob = new Blob([JSON.stringify(stats, null, 2)], {
+        const blob = new Blob([JSON.stringify(stats, null, 2)], {type: "application/json"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "stats_gilles.json";
+        a.click();
+    }
+
+    function resetGame() {
+        document.getElementById('game-board').innerHTML = '';
+        currentAttempt = [];
+        secretCode = Array.from({ length: 4 }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
+    }
+
+    // Caricamento finale
+    window.onload = initGame;
+</script>
+</body>
+</html>

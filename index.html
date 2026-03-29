@@ -14,9 +14,9 @@
             --accent: #4cc9f0; 
             --win: #4caf50; 
             --loss: #f44336; 
-            --correct: #000000; /* Pioli Neri */
-            --present: #ffffff; /* Pioli Bianchi */
-            --row-bg: rgba(255,255,255,0.08); /* Sfondo righe più chiaro */
+            --correct: #000000; 
+            --present: #ffffff; 
+            --row-bg: rgba(255,255,255,0.08); 
         }
         
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; text-align: center; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
@@ -24,18 +24,13 @@
         .stats { font-size: 0.8rem; margin-bottom: 5px; color: #a2a2c2; line-height: 1.2; z-index: 5; }
         
         #game-board { flex-grow: 1; max-width: 450px; margin: auto; background: var(--panel); padding: 10px; border-radius: 15px; overflow-y: auto; width: 100%; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
-        
-        /* Righe del tabellone con sfondo chiaro */
         .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 8px; background: var(--row-bg); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03); }
         
         .slots-container { display: flex; gap: 6px; }
         .slot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; }
         
-        /* Griglia feedback */
         .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 5px; }
-        
-        /* Pioli con bordatura chiara */
-        .pin { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); box-shadow: inset 0 0 2px rgba(0,0,0,0.5); }
+        .pin { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); box-shadow: inset 0 0 2px rgba(0,0,0,0.5); }
         
         .controls { background: var(--bg); padding: 10px 5px; width: 100%; max-width: 450px; margin: 0 auto; z-index: 10; }
         .current-selection { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; min-height: 35px; }
@@ -46,26 +41,28 @@
         .btn-check { background: var(--win); color: white; flex: 2; }
         .btn-del { background: var(--loss); color: white; flex: 1; }
         
-        /* Overlay Finale */
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: flex-start; padding-top: 20px; box-sizing: border-box; backdrop-filter: blur(2px); }
         .modal { background: var(--panel); padding: 20px; border-radius: 20px; border: 3px solid var(--accent); max-width: 90%; text-align: center; box-shadow: 0 0 30px var(--accent); position: relative; }
-        .modal h2 { font-size: 1.8rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .modal h2 { font-size: 1.8rem; margin: 0; }
         .modal p { font-size: 0.95rem; margin: 10px 0 5px; color: #ccc; }
         .secret-reveal { display: flex; gap: 10px; justify-content: center; margin: 10px 0 20px; }
-        .secret-reveal .slot { width: 28px; height: 28px; }
         .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1rem; }
     </style>
 </head>
 <body>
     <h1>Mastermind Gilles</h1>
-    <div class="stats" id="win-counter">Caricamento statistiche...</div>
+    <div class="stats" id="win-counter"></div>
     <div id="game-board"></div>
     <div class="controls">
         <div class="current-selection" id="current-view"></div>
         <div class="color-picker" id="picker"></div>
-        <div class="btn-group"><button class="btn-del" onclick="move(-1)">⌫</button><button class="btn-check" onclick="check()">Verifica</button></div>
+        <div class="btn-group">
+            <button class="btn-del" onclick="move(-1)">⌫</button>
+            <button class="btn-check" onclick="check()">Verifica</button>
+        </div>
     </div>
     <div id="overlay"><div class="modal"><h2 id="res-t"></h2><p id="att-i"></p><div class="secret-reveal" id="reveal"></div><button class="btn-restart" onclick="reset()">Nuova Sfida</button></div></div>
+
 <script>
     const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6'];
     let secret = [], curr = [], stats = JSON.parse(localStorage.getItem('mm_stats')) || { w: 0, l: 0, b: null }, audio;
@@ -78,7 +75,9 @@
         secret = Array.from({length:4}, () => COLORS[Math.floor(Math.random()*6)]);
         updateUI();
         const p = document.getElementById('picker'); p.innerHTML = '';
-        COLORS.forEach(c => { const b = document.createElement('div'); b.className='choice'; b.style.background=c; b.onclick=() => move(c); p.appendChild(b); });
+        COLORS.forEach(c => {
+            const b = document.createElement('div'); b.className='choice'; b.style.background=c; b.onclick=() => move(c); p.appendChild(b);
+        });
         render();
     }
 
@@ -89,7 +88,11 @@
 
     function render() {
         const v = document.getElementById('current-view'); v.innerHTML = '';
-        for(let i=0; i<4; i++) { const s = document.createElement('div'); s.className='slot'; if(curr[i]) { s.style.background=curr[i]; s.style.border='2px solid white'; } v.appendChild(s); }
+        for(let i=0; i<4; i++) {
+            const s = document.createElement('div'); s.className='slot';
+            if(curr[i]) { s.style.background=curr[i]; s.style.border='2px solid white'; }
+            v.appendChild(s);
+        }
     }
 
     function check() {
@@ -97,37 +100,36 @@
         let b = 0, w = 0, sC = [...secret], aC = [...curr];
         aC.forEach((c, i) => { if(c === sC[i]) { b++; sC[i] = aC[i] = null; } });
         aC.forEach(c => { if(c) { let idx = sC.indexOf(c); if(idx!==-1) { w++; sC[idx] = null; } } });
-        addBoardRow(curr, b, w);
+        
+        const row = document.createElement('div'); row.className = 'row';
+        row.innerHTML = `<div class="slots-container">${curr.map(c=>`<div class="slot" style="background:${c}"></div>`).join('')}</div><div class="feedback-grid">${Array(b).fill('<div class="pin" style="background:var(--correct)"></div>').join('')}${Array(w).fill('<div class="pin" style="background:var(--present)"></div>').join('')}</div>`;
+        document.getElementById('game-board').prepend(row);
+        
         const att = document.querySelectorAll('.row').length;
         if(b===4) end(1, att); else if(att>=10) end(0, att);
         curr = []; render();
     }
 
-    function endGame(v, a) {
+    function end(v, a) {
         const o = document.getElementById('overlay');
         document.getElementById('res-t').innerText = v ? "HAI VINTO!" : "HAI PERSO!";
         document.getElementById('res-t').style.color = v ? "var(--win)" : "var(--loss)";
         document.getElementById('att-i').innerText = v ? `In ${a} tentativi` : "Non hai trovato la sequenza.";
         document.getElementById('reveal').innerHTML = secret.map(c=>`<div class="slot" style="background:${c}"></div>`).join('');
-        if(v) { stats.w++; if(!stats.b || a < stats.b) stats.b = a; play(800,'square',0.4); } else { stats.l++; play(150,'sawtooth',0.6); }
+        if(v) { stats.w++; if(!stats.b || a < stats.b) stats.b = a; play(800,'square',0.4); } 
+        else { stats.l++; play(150,'sawtooth',0.6); }
         localStorage.setItem('mm_stats', JSON.stringify(stats)); updateUI(); o.style.display = 'flex';
     }
 
-    function addBoardRow(attempt, black, white) {
-        const board = document.getElementById('game-board');
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `<div class="slots-container">${attempt.map(c=>`<div class="slot" style="background:${c}"></div>`).join('')}</div><div class="feedback-grid">${Array(black).fill('<div class="pin" style="background:var(--correct)"></div>').join('')}${Array(white).fill('<div class="pin" style="background:var(--present)"></div>').join('')}</div>`;
-        board.prepend(row);
+    function updateUI() { 
+        document.getElementById('win-counter').innerHTML = `V: ${stats.w} | S: ${stats.l}${stats.b ? `<br>Record: ${stats.b} tentativi` : ''}`; 
     }
-
-    function saveStats() { localStorage.setItem('mm_stats', JSON.stringify(stats)); updateStatsUI(); }
-    function updateStatsUI() {
-        let text = `V: ${stats.w} | S: ${stats.l}`;
-        if(stats.best) text += `<br>Record: ${stats.best} tentativi`;
-        document.getElementById('win-counter').innerHTML = text;
+    
+    function reset() { 
+        document.getElementById('overlay').style.display='none'; 
+        document.getElementById('game-board').innerHTML=''; 
+        init(); 
     }
-    function reset() { document.getElementById('overlay').style.display='none'; document.getElementById('game-board').innerHTML=''; init(); }
 
     window.onload = init;
     if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');

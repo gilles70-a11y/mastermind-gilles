@@ -17,11 +17,12 @@
             font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; text-align: center; 
             margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; 
             box-sizing: border-box; overflow: hidden;
-            padding-bottom: env(safe-area-inset-bottom); /* Evita che i tasti finiscano sotto */
+            /* Rialzo forzato per i tasti */
+            padding-bottom: calc(30px + env(safe-area-inset-bottom)); 
         }
 
-        h1 { font-size: 1.2rem; color: var(--accent); margin: 2px 0; letter-spacing: 1px; text-transform: uppercase; }
-        .stats { font-size: 0.75rem; margin-bottom: 5px; color: #a2a2c2; line-height: 1.1; }
+        h1 { font-size: 1.1rem; color: var(--accent); margin: 2px 0; letter-spacing: 1px; text-transform: uppercase; }
+        .stats { font-size: 0.7rem; margin-bottom: 5px; color: #a2a2c2; line-height: 1.1; }
         
         #game-board { 
             flex-grow: 1; max-width: 450px; margin: 0 auto; background: var(--panel); 
@@ -31,40 +32,42 @@
 
         .row { 
             display: flex; align-items: center; justify-content: space-between; 
-            margin-bottom: 5px; padding: 6px; background: var(--row-bg); 
+            margin-bottom: 4px; padding: 5px; background: var(--row-bg); 
             border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); 
         }
         
         .slots-container { display: flex; gap: 4px; }
-        .slot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #333; }
+        .slot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #333; }
         .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 5px; }
-        .pin { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); }
+        .pin { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); }
         
         .controls { 
             background: var(--bg); padding: 5px 0; width: 100%; max-width: 450px; 
-            margin: 0 auto; flex-shrink: 0; /* Impedisce ai tasti di rimpicciolirsi */
+            margin: 0 auto; flex-shrink: 0;
         }
 
         .current-selection { 
-            display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; 
-            padding: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; min-height: 30px; 
+            display: flex; justify-content: center; gap: 8px; margin-bottom: 5px; 
+            padding: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; min-height: 28px; 
         }
 
         .color-picker { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-        .choice { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+        .choice { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
         
-        .btn-group { display: flex; gap: 10px; padding: 0 5px; margin-bottom: 5px; }
-        button { padding: 10px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
-        .btn-check { background: var(--win); color: white; flex: 2; }
-        .btn-del { background: var(--loss); color: white; flex: 1; }
+        .btn-group { display: flex; gap: 10px; padding: 0 5px; }
+        button { padding: 12px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
+        .btn-check { background: var(--win); color: white; flex: 2; box-shadow: 0 4px 0 #2e7d32; }
+        .btn-del { background: var(--loss); color: white; flex: 1; box-shadow: 0 4px 0 #c62828; }
+        /* Effetto pressione tasti */
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
         
         #overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; 
-            align-items: flex-start; padding-top: 15vh; box-sizing: border-box; backdrop-filter: blur(2px); 
+            background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; 
+            align-items: flex-start; padding-top: 10vh; box-sizing: border-box; backdrop-filter: blur(3px); 
         }
         .modal { background: var(--panel); padding: 20px; border-radius: 20px; border: 3px solid var(--accent); max-width: 85%; text-align: center; }
-        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1rem; margin-top: 10px; }
+        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1rem; margin-top: 15px; box-shadow: 0 4px 0 #3a9dbb; }
     </style>
 </head>
 <body>

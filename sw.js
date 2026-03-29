@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mastermind-gilles-v2';
+const CACHE_NAME = 'mastermind-gilles-v5';
 const assets = [
   './',
   './index.html',

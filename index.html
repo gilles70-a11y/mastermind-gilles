@@ -14,42 +14,46 @@
             --accent: #4cc9f0; 
             --win: #4caf50; 
             --loss: #f44336; 
-            --feedback-right: #ffee00; /* Giallo Neon per massimo contrasto */
-            --feedback-wrong: #ffffff; /* Bianco per i colori giusti in posizione errata */
+            --correct: #000000; /* Pioli Neri */
+            --present: #ffffff; /* Pioli Bianchi */
+            --row-bg: rgba(255,255,255,0.08); /* Sfondo righe più chiaro */
         }
         
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; text-align: center; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
-        h1 { font-size: 1.4rem; color: var(--accent); margin: 5px 0; letter-spacing: 2px; text-transform: uppercase; }
-        .stats { font-size: 0.85rem; margin-bottom: 10px; color: #a2a2c2; line-height: 1.4; }
+        h1 { font-size: 1.3rem; color: var(--accent); margin: 3px 0; letter-spacing: 2px; text-transform: uppercase; }
+        .stats { font-size: 0.8rem; margin-bottom: 5px; color: #a2a2c2; line-height: 1.2; z-index: 5; }
         
         #game-board { flex-grow: 1; max-width: 450px; margin: auto; background: var(--panel); padding: 10px; border-radius: 15px; overflow-y: auto; width: 100%; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
-        .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 10px; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Righe del tabellone con sfondo chiaro */
+        .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 8px; background: var(--row-bg); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03); }
         
         .slots-container { display: flex; gap: 6px; }
-        .slot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
+        .slot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; }
         
-        .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 5px; }
-        .pin { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #000; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        /* Griglia feedback */
+        .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 5px; }
         
-        .controls { background: var(--bg); padding: 15px 5px; width: 100%; max-width: 450px; margin: 0 auto; z-index: 10; }
-        .current-selection { display: flex; justify-content: center; gap: 12px; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; min-height: 40px; }
-        .color-picker { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-        .choice { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.1s; }
-        .choice:active { transform: scale(0.85); }
-        .btn-group { display: flex; gap: 10px; }
-        button { padding: 14px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
+        /* Pioli con bordatura chiara */
+        .pin { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); box-shadow: inset 0 0 2px rgba(0,0,0,0.5); }
+        
+        .controls { background: var(--bg); padding: 10px 5px; width: 100%; max-width: 450px; margin: 0 auto; z-index: 10; }
+        .current-selection { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; min-height: 35px; }
+        .color-picker { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .choice { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+        .btn-group { display: flex; gap: 8px; }
+        button { padding: 12px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase; }
         .btn-check { background: var(--win); color: white; flex: 2; }
         .btn-del { background: var(--loss); color: white; flex: 1; }
         
-        /* Overlay Finale Trasparente per vedere i tentativi sotto */
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
-        .modal { background: var(--panel); padding: 30px; border-radius: 20px; border: 3px solid var(--accent); max-width: 85%; text-align: center; box-shadow: 0 0 30px var(--accent); position: relative; }
-        .modal h2 { font-size: 2.2rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .modal p { font-size: 1.1rem; margin: 15px 0 5px; color: #ccc; }
-        .secret-reveal { display: flex; gap: 10px; justify-content: center; margin: 15px 0 25px; }
-        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1.1rem; }
-        #best-score { font-size: 0.8rem; color: var(--accent); margin-top: 15px; display: block; }
+        /* Overlay Finale */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: flex-start; padding-top: 20px; box-sizing: border-box; backdrop-filter: blur(2px); }
+        .modal { background: var(--panel); padding: 20px; border-radius: 20px; border: 3px solid var(--accent); max-width: 90%; text-align: center; box-shadow: 0 0 30px var(--accent); position: relative; }
+        .modal h2 { font-size: 1.8rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .modal p { font-size: 0.95rem; margin: 10px 0 5px; color: #ccc; }
+        .secret-reveal { display: flex; gap: 10px; justify-content: center; margin: 10px 0 20px; }
+        .secret-reveal .slot { width: 28px; height: 28px; }
+        .btn-restart { background: var(--accent); color: var(--bg); width: 100%; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -59,128 +63,74 @@
     <div class="controls">
         <div class="current-selection" id="current-view"></div>
         <div class="color-picker" id="picker"></div>
-        <div class="btn-group">
-            <button class="btn-del" onclick="deleteLast()">⌫</button>
-            <button class="btn-check" onclick="checkAttempt()">Verifica</button>
-        </div>
+        <div class="btn-group"><button class="btn-del" onclick="move(-1)">⌫</button><button class="btn-check" onclick="check()">Verifica</button></div>
     </div>
-    <div id="overlay">
-        <div class="modal">
-            <h2 id="result-text"></h2>
-            <p id="attempt-info"></p>
-            <p>La sequenza era:</p>
-            <div class="secret-reveal" id="secret-reveal"></div>
-            <button class="btn-restart" onclick="resetGame()">Nuova Sfida</button>
-            <span id="best-score"></span>
-        </div>
-    </div>
-
+    <div id="overlay"><div class="modal"><h2 id="res-t"></h2><p id="att-i"></p><div class="secret-reveal" id="reveal"></div><button class="btn-restart" onclick="reset()">Nuova Sfida</button></div></div>
 <script>
     const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6'];
-    let secretCode = [];
-    let currentAttempt = [];
-    let stats = JSON.parse(localStorage.getItem('mm_stats')) || { wins: 0, losses: 0, best: null };
-    let audioCtx;
+    let secret = [], curr = [], stats = JSON.parse(localStorage.getItem('mm_stats')) || { w: 0, l: 0, b: null }, audio;
 
-    function playSound(freq, type, duration) {
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
-        } catch (e) {}
+    function play(f, t, d) {
+        try { if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain(); o.type = t; o.frequency.setValueAtTime(f, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audio.currentTime+d); o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime+d); } catch(e){}
     }
 
-    function initGame() {
-        secretCode = Array.from({ length: 4 }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
-        updateStatsUI(); setupPicker(); renderSelection();
+    function init() {
+        secret = Array.from({length:4}, () => COLORS[Math.floor(Math.random()*6)]);
+        updateUI();
+        const p = document.getElementById('picker'); p.innerHTML = '';
+        COLORS.forEach(c => { const b = document.createElement('div'); b.className='choice'; b.style.background=c; b.onclick=() => move(c); p.appendChild(b); });
+        render();
     }
 
-    function setupPicker() {
-        const picker = document.getElementById('picker');
-        picker.innerHTML = '';
-        COLORS.forEach(color => {
-            const btn = document.createElement('div');
-            btn.className = 'choice';
-            btn.style.backgroundColor = color;
-            btn.onclick = () => { if(currentAttempt.length < 4) { currentAttempt.push(color); renderSelection(); playSound(400, 'sine', 0.1); } };
-            picker.appendChild(btn);
-        });
+    function move(c) {
+        if(c === -1) curr.pop(); else if(curr.length < 4) curr.push(c);
+        play(c===-1?200:400, 'sine', 0.1); render();
     }
 
-    function renderSelection() {
-        const view = document.getElementById('current-view');
-        view.innerHTML = '';
-        for(let i=0; i<4; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'slot';
-            if(currentAttempt[i]) { slot.style.backgroundColor = currentAttempt[i]; slot.style.border = "2px solid white"; }
-            view.appendChild(slot);
-        }
+    function render() {
+        const v = document.getElementById('current-view'); v.innerHTML = '';
+        for(let i=0; i<4; i++) { const s = document.createElement('div'); s.className='slot'; if(curr[i]) { s.style.background=curr[i]; s.style.border='2px solid white'; } v.appendChild(s); }
     }
 
-    function deleteLast() { if(currentAttempt.length > 0) { currentAttempt.pop(); renderSelection(); playSound(200, 'sine', 0.1); } }
-
-    function checkAttempt() {
-        if (currentAttempt.length < 4) return;
-        let black = 0, white = 0;
-        let sCopy = [...secretCode], aCopy = [...currentAttempt];
-        for(let i=0; i<4; i++) { if(aCopy[i] === sCopy[i]) { black++; sCopy[i] = aCopy[i] = null; } }
-        for(let i=0; i<4; i++) { if(aCopy[i]) { let index = sCopy.indexOf(aCopy[i]); if(index !== -1) { white++; sCopy[index] = null; } } }
-        addBoardRow(currentAttempt, black, white);
-        const attemptsUsed = document.querySelectorAll('.row').length;
-        if (black === 4) endGame(true, attemptsUsed);
-        else if (attemptsUsed >= 10) endGame(false, attemptsUsed);
-        currentAttempt = []; renderSelection();
+    function check() {
+        if(curr.length < 4) return;
+        let b = 0, w = 0, sC = [...secret], aC = [...curr];
+        aC.forEach((c, i) => { if(c === sC[i]) { b++; sC[i] = aC[i] = null; } });
+        aC.forEach(c => { if(c) { let idx = sC.indexOf(c); if(idx!==-1) { w++; sC[idx] = null; } } });
+        addBoardRow(curr, b, w);
+        const att = document.querySelectorAll('.row').length;
+        if(b===4) end(1, att); else if(att>=10) end(0, att);
+        curr = []; render();
     }
 
-    function endGame(win, attempts) {
-        const overlay = document.getElementById('overlay');
-        const resText = document.getElementById('result-text');
-        const attInfo = document.getElementById('attempt-info');
-        const reveal = document.getElementById('secret-reveal');
-        const bestSpan = document.getElementById('best-score');
-        reveal.innerHTML = secretCode.map(c => `<div class="slot" style="background:${c}"></div>`).join('');
-        if(win) {
-            resText.innerText = "HAI VINTO!"; resText.style.color = "var(--win)";
-            attInfo.innerText = `Decifrato in ${attempts} tentativi!`;
-            stats.wins++;
-            if(!stats.best || attempts < stats.best) stats.best = attempts;
-            playSound(800, 'square', 0.4);
-        } else {
-            resText.innerText = "HAI PERSO!"; resText.style.color = "var(--loss)";
-            attInfo.innerText = "Non hai trovato la sequenza.";
-            stats.losses++;
-            playSound(150, 'sawtooth', 0.6);
-            // NON pulisco il game-board qui, così i tentativi rimangono visibili sotto l'overlay
-        }
-        bestSpan.innerText = stats.best ? `Record: ${stats.best} tentativi` : "";
-        saveStats(); overlay.style.display = 'flex';
+    function endGame(v, a) {
+        const o = document.getElementById('overlay');
+        document.getElementById('res-t').innerText = v ? "HAI VINTO!" : "HAI PERSO!";
+        document.getElementById('res-t').style.color = v ? "var(--win)" : "var(--loss)";
+        document.getElementById('att-i').innerText = v ? `In ${a} tentativi` : "Non hai trovato la sequenza.";
+        document.getElementById('reveal').innerHTML = secret.map(c=>`<div class="slot" style="background:${c}"></div>`).join('');
+        if(v) { stats.w++; if(!stats.b || a < stats.b) stats.b = a; play(800,'square',0.4); } else { stats.l++; play(150,'sawtooth',0.6); }
+        localStorage.setItem('mm_stats', JSON.stringify(stats)); updateUI(); o.style.display = 'flex';
     }
 
     function addBoardRow(attempt, black, white) {
         const board = document.getElementById('game-board');
         const row = document.createElement('div');
         row.className = 'row';
-        row.innerHTML = `<div class="slots-container">` + attempt.map(c => `<div class="slot" style="background:${c}"></div>`).join('') + `</div><div class="feedback-grid">` + Array(black).fill('<div class="pin" style="background:var(--feedback-right)"></div>').join('') + Array(white).fill('<div class="pin" style="background:var(--feedback-wrong)"></div>').join('') + `</div>`;
+        row.innerHTML = `<div class="slots-container">${attempt.map(c=>`<div class="slot" style="background:${c}"></div>`).join('')}</div><div class="feedback-grid">${Array(black).fill('<div class="pin" style="background:var(--correct)"></div>').join('')}${Array(white).fill('<div class="pin" style="background:var(--present)"></div>').join('')}</div>`;
         board.prepend(row);
     }
 
     function saveStats() { localStorage.setItem('mm_stats', JSON.stringify(stats)); updateStatsUI(); }
     function updateStatsUI() {
-        let text = `Vittorie: ${stats.wins} | Sconfitte: ${stats.losses}`;
+        let text = `V: ${stats.w} | S: ${stats.l}`;
         if(stats.best) text += `<br>Record: ${stats.best} tentativi`;
         document.getElementById('win-counter').innerHTML = text;
     }
-    function resetGame() { document.getElementById('overlay').style.display = 'none'; document.getElementById('game-board').innerHTML = ''; currentAttempt = []; secretCode = Array.from({ length: 4 }, () => COLORS[Math.floor(Math.random() * COLORS.length)]); renderSelection(); }
+    function reset() { document.getElementById('overlay').style.display='none'; document.getElementById('game-board').innerHTML=''; init(); }
 
-    window.onload = initGame;
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').then(() => console.log("Gilles MM pronto per l'offline!")).catch(err => console.log("Errore Offline:", err)); }
+    window.onload = init;
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>

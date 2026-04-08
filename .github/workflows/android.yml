@@ -62,7 +62,7 @@ jobs:
           yes | bubblewrap update || true
 
             - name: Compilazione Forzata con Gradle
-        run: |
+        
           # Crea i file necessari se mancano
           if [ ! -f gradlew ]; then
             gradle init --type basic

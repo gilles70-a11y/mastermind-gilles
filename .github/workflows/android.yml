@@ -28,8 +28,7 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione manuale del file di progetto (evitiamo init e update)
-          # Usiamo dati pre-compilati per non far fermare il processo
+          # 2. Creazione manuale del file di progetto
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -62,20 +61,18 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          # 3. Forziamo la creazione del progetto senza domande
-          # Usiamo 'yes' per rispondere a ogni richiesta di versione o nomi
+          # 3. Forziamo l'aggiornamento e la generazione dei file Gradle
+          # 'yes' impedisce il blocco su domande tipo versionName
           yes "y" | bubblewrap update || true
 
-          # 4. Build finale forzata
-          # Se fallisce per le icone, lui proverà comunque a generare l'APK
+          # 4. Compilazione APK
           yes "n" | bubblewrap build --skipSigning || true
 
-            - name: Carica APK Finale
+      - name: Carica APK Finale
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Questa riga cercherà in TUTTE le cartelle create
+          # La modifica cruciale: cerca l'APK in ogni sottocartella
           path: "**/*.apk"
-          # Se trova più file, non si ferma
           if-no-files-found: error
           

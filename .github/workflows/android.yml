@@ -10,14 +10,35 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build Android App (PWA)
-        uses: pwa-builder/pwa-starter-action@v1
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          # Legge il file direttamente dal tuo codice, zero download esterni
-          manifest-url: https://gilles70-a11y.github.io/mastermind-pwa/manifest.json
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Costruisci APK
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
           
-      - name: Carica APK
+          # Inizializziamo il progetto partendo dal tuo file locale
+          # RISPONDE AUTOMATICAMENTE A TUTTO
+          bubblewrap init --manifest=./manifest.json --yes || true
+          
+          # Creiamo un file minimo se Bubblewrap non lo ha fatto per l'errore URL
+          if [ ! -f "twa-manifest.json" ]; then
+            echo '{"packageId":"com.mastermind.pwa","host":"gilles70-a11y.github.io","name":"Mastermind","launcherName":"Mastermind","display":"standalone","themeColor":"#000000","navigationColor":"#000000","backgroundColor":"#000000","startUrl":"/mastermind-pwa/","iconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","maskableIconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","splashScreenFadeOutDuration":300,"shortcuts":[],"webManifestUrl":"https://gilles70-a11y.github.io/mastermind-pwa/manifest.json","fallbackType":"customtabs","features":{"locationDelegation":false,"playBilling":false},"alphaCode":1,"minSdkVersion":19,"targetSdkVersion":34,"enableNotification":true,"orientation":"any","fingerprints":[],"additionalTrustedOrigins":[],"retainedBundles":[],"appVersionName":"1.0.0","appVersionCode":1,"signingKey":{"path":"./android.keystore","alias":"android"},"generatorApp":"bubblewrap-cli","signingMode":"none"}' > twa-manifest.json
+          fi
+
+          # Costruzione effettiva
+          bubblewrap build --skipSigning
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-android-fatta
-          path: ./**/*.apk
+          name: app-debug
+          path: ./*.apk
+          

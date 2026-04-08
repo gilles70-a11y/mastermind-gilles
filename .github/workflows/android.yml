@@ -22,22 +22,57 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Generazione APK Forzata
+      - name: Build APK Forzata
         run: |
-          # 1. Configurazione ambiente
+          # 1. Configurazione silenziata
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Inizializzazione usando un'icona sicuramente esistente online
-          # Usiamo l'URL del tuo manifest su GitHub Pages che ora dovrebbe essere attivo
-          yes | bubblewrap init --manifest="https://gilles70-a11y.github.io/mastermind-pwa/manifest.json" --yes
+          # 2. CREAZIONE MANUALE DEL PROGETTO (Saltiamo il comando init che si rompe sempre)
+          # Usiamo l'icona di Google se la tua MasterGilles non viene trovata, così non si blocca
+          echo '{
+            "packageId": "com.mastermind.gilles",
+            "host": "gilles70-a11y.github.io",
+            "name": "Mastermind",
+            "launcherName": "Mastermind",
+            "display": "standalone",
+            "themeColor": "#000000",
+            "navigationColor": "#000000",
+            "backgroundColor": "#000000",
+            "startUrl": "/mastermind-pwa/",
+            "iconUrl": "https://pwa-builder-dynamic-image.azurewebsites.net/?img=https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png&w=512",
+            "maskableIconUrl": "https://pwa-builder-dynamic-image.azurewebsites.net/?img=https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png&w=512",
+            "splashScreenFadeOutDuration": 300,
+            "shortcuts": [],
+            "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
+            "fallbackType": "customtabs",
+            "features": { "locationDelegation": false, "playBilling": false },
+            "alphaCode": 1,
+            "minSdkVersion": 19,
+            "targetSdkVersion": 34,
+            "enableNotification": true,
+            "orientation": "any",
+            "fingerprints": [],
+            "additionalTrustedOrigins": [],
+            "retainedBundles": [],
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "signingKey": { "path": "./android.keystore", "alias": "android" },
+            "generatorApp": "bubblewrap-cli",
+            "signingMode": "none"
+          }' > twa-manifest.json
 
-          # 3. Build finale (Ignoriamo gli errori dei controlli e compiliamo)
-          bubblewrap build --skipSigning
+          # 3. GENERAZIONE FILE MANCANTI (Il trucco finale)
+          # Questo comando genera i file Gradle senza fare domande stupide sull'URL
+          bubblewrap update --yes
 
-      - name: Carica APK
+          # 4. COMPILAZIONE
+          # "echo n" risponde NO alla domanda "vuoi rigenerare tutto?" e va dritto al sodo
+          echo n | bubblewrap build --skipSigning
+
+      - name: Scarica APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-APK
+          name: Mastermind-APK-Finale
           path: ./*.apk
           

@@ -61,19 +61,21 @@ jobs:
           # Generiamo i file ma ignoriamo i fallimenti di rete o icone
           yes | bubblewrap update || true
 
-      - name: Compilazione Forzata con Gradle
+            - name: Compilazione Forzata con Gradle
         run: |
-          # Se Bubblewrap non ha creato il gradlew, lo inizializziamo noi
+          # Crea i file necessari se mancano
           if [ ! -f gradlew ]; then
             gradle init --type basic
           fi
-          chmod +x gradlew || true
-          # Usiamo assembleDebug che è meno schizzinoso sui certificati
-          ./gradlew assembleDebug || true
+          chmod +x gradlew
+          # Forza la creazione dell'APK di debug
+          ./gradlew assembleDebug
 
       - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          path: "**/*.apk"
+          # Specifichiamo il percorso standard di Android per gli APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
           

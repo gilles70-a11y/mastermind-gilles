@@ -10,34 +10,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java (JDK 17)
-        uses: actions/setup-java@v4
+      - name: Build Android App (PWA)
+        uses: pwa-builder/pwa-starter-action@v1
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Build APK Finale
-        run: |
-          npm install -g @bubblewrap/cli
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          # Legge il file direttamente dal tuo codice, zero download esterni
+          manifest-url: https://gilles70-a11y.github.io/mastermind-pwa/manifest.json
           
-          # Parametri completi: URL per la configurazione E file locale per la lettura
-          yes | bubblewrap init --manifest=https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --localManifest=./manifest.json --yes
-          
-          # Genera l'app
-          bubblewrap build --skipSigning
-
-      - name: Scarica APK
+      - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-mastermind-final
-          path: ./*.apk
+          name: app-android-fatta
+          path: ./**/*.apk

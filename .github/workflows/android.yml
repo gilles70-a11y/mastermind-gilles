@@ -29,17 +29,13 @@ jobs:
 
       - name: Configurazione e Build APK
         run: |
-          # Creiamo la cartella di configurazione per evitare domande interattive
           mkdir -p ~/.bubblewrap
-          
-          # Diciamo a Bubblewrap dove trovare Java e Android SDK già installati
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Inizializziamo il progetto con il tuo URL reale
-          # Nota: 'yes' risponde automaticamente a eventuali conferme residue
-          yes | bubblewrap init --manifest=https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --yes
+          # Invece di usare l'URL, puntiamo direttamente al file nel tuo repository
+          # Se il tuo manifest si chiama in modo diverso (es. manifest.webmanifest), cambialo qui sotto
+          yes | bubblewrap init --manifest=./manifest.json --yes
           
-          # Costruiamo l'APK finale saltando la firma (per uso test/personale)
           bubblewrap build --skipSigning
 
       - name: Carica l'APK come Artefatto

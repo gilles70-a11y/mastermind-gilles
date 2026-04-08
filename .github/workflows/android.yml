@@ -22,13 +22,13 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Locale
+      - name: Build APK Finale
         run: |
           # 1. Configurazione ambiente
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione manuale del file di progetto (TWA Manifest)
+          # 2. Creazione manuale del file di progetto
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -61,13 +61,12 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
           
-          # 3. Costruzione forzata: risponde "yes" alle licenze e "no" alla rigenerazione
-          # Questo risolve il blocco Exit Code 130
-          yes | bubblewrap build --skipSigning || echo "n" | bubblewrap build --skipSigning
+          # 3. PULIZIA E BUILD: "yes" per accettare tutto e "bubblewrap build"
+          # Usiamo "yes" per forzare l'accettazione di ogni licenza o sovrascrittura
+          yes | bubblewrap build --skipSigning
 
-      - name: Carica APK finale
+      - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-APK-Pronto
+          name: Mastermind-Release
           path: ./*.apk
-          

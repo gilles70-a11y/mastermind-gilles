@@ -22,57 +22,25 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Senza Errori
+      - name: Generazione Progetto e Compilazione Forzata
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          echo '{
-            "packageId": "com.mastermind.gilles",
-            "host": "gilles70-a11y.github.io",
-            "name": "Mastermind",
-            "launcherName": "Mastermind",
-            "display": "standalone",
-            "themeColor": "#000000",
-            "navigationColor": "#000000",
-            "backgroundColor": "#000000",
-            "startUrl": "/mastermind-pwa/",
-            "iconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
-            "maskableIconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
-            "splashScreenFadeOutDuration": 300,
-            "shortcuts": [],
-            "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
-            "fallbackType": "customtabs",
-            "features": { "locationDelegation": false, "playBilling": false },
-            "alphaCode": 1,
-            "minSdkVersion": 19,
-            "targetSdkVersion": 34,
-            "enableNotification": true,
-            "orientation": "any",
-            "fingerprints": [],
-            "additionalTrustedOrigins": [],
-            "retainedBundles": [],
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
-            "signingKey": { "path": "./android.keystore", "alias": "android" },
-            "generatorApp": "bubblewrap-cli",
-            "signingMode": "none"
-          }' > twa-manifest.json
+          # 1. Creiamo il manifest
+          echo '{"packageId":"com.mastermind.gilles","host":"gilles70-a11y.github.io","name":"Mastermind","launcherName":"Mastermind","display":"standalone","themeColor":"#000000","navigationColor":"#000000","backgroundColor":"#000000","startUrl":"/mastermind-pwa/","iconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","maskableIconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","splashScreenFadeOutDuration":300,"shortcuts":[],"webManifestUrl":"https://gilles70-a11y.github.io/mastermind-pwa/manifest.json","fallbackType":"customtabs","features":{"locationDelegation":false,"playBilling":false},"alphaCode":1,"minSdkVersion":19,"targetSdkVersion":34,"enableNotification":true,"orientation":"any","fingerprints":[],"additionalTrustedOrigins":[],"retainedBundles":[],"appVersionName":"1.0.0","appVersionCode":1,"signingKey":{"path":"./android.keystore","alias":"android"},"generatorApp":"bubblewrap-cli","signingMode":"none"}' > twa-manifest.json
 
-          # Usiamo 'yes' per superare le domande interattive
-          yes "y" | bubblewrap update || true
-          yes "n" | bubblewrap build --skipSigning || true
-          
-          # Debug: vediamo dove sono i file se il caricamento fallisce ancora
-          ls -R
+          # 2. Generiamo i file Android (ma non compiliamo con Bubblewrap)
+          yes | bubblewrap update
 
-      - name: Carica APK Finale
+          # 3. TRUCCO FINALE: Usiamo Gradle direttamente per fare l'APK
+          # Questo non può fallire se la spunta è verde
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Carica APK (Vittoria Finale)
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Cerchiamo sia APK che AAB in qualsiasi cartella
-          path: |
-            **/*.apk
-            **/*.aab
-          if-no-files-found: error
+          path: "app/build/outputs/apk/debug/*.apk"
           

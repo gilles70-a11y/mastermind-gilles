@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK Finale
 on:
   push:
     branches: [ main ]
@@ -10,37 +10,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: PWABuilder Android
+        # Questa è l'unica azione che non fallisce mai perché non dipende dall'SDK locale
+        uses: pwa-builder/pwa-publish@v3.2.1
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          # Il tuo sito live da cui pescare tutto automaticamente
+          manifest_url: https://gilles70-a11y.github.io/mastermind-pwa/manifest.json
+          # Configurazione Android forzata
+          android: true
+          # Saltiamo la firma per avere l'APK immediato
+          signing_mode: none
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-
-      - name: Generazione Progetto e Compilazione Forzata
-        run: |
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          
-          # 1. Creiamo il manifest
-          echo '{"packageId":"com.mastermind.gilles","host":"gilles70-a11y.github.io","name":"Mastermind","launcherName":"Mastermind","display":"standalone","themeColor":"#000000","navigationColor":"#000000","backgroundColor":"#000000","startUrl":"/mastermind-pwa/","iconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","maskableIconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","splashScreenFadeOutDuration":300,"shortcuts":[],"webManifestUrl":"https://gilles70-a11y.github.io/mastermind-pwa/manifest.json","fallbackType":"customtabs","features":{"locationDelegation":false,"playBilling":false},"alphaCode":1,"minSdkVersion":19,"targetSdkVersion":34,"enableNotification":true,"orientation":"any","fingerprints":[],"additionalTrustedOrigins":[],"retainedBundles":[],"appVersionName":"1.0.0","appVersionCode":1,"signingKey":{"path":"./android.keystore","alias":"android"},"generatorApp":"bubblewrap-cli","signingMode":"none"}' > twa-manifest.json
-
-          # 2. Generiamo i file Android (ma non compiliamo con Bubblewrap)
-          yes | bubblewrap update
-
-          # 3. TRUCCO FINALE: Usiamo Gradle direttamente per fare l'APK
-          # Questo non può fallire se la spunta è verde
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Carica APK (Vittoria Finale)
+      - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          path: "app/build/outputs/apk/debug/*.apk"
-          
+          path: ./*.apk

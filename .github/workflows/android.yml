@@ -1,1 +1,26 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main ] # Si attiva ogni volta che fai un push su main
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build APK
+        # Sostituisci l'URL con quello della tua PWA live
+        run: |
+          bubblewrap init --manifest=https://tuosito.com/manifest.json
+          bubblewrap build --skipSigning
+          

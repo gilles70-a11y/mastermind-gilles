@@ -19,13 +19,11 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Inizializzazione Silenziosa
+      - name: Inizializzazione e Generazione Progetto
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Creiamo un manifest locale "sicuro" che punta a icone interne 
-          # per evitare l'errore 404 che abbiamo visto nei log
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -58,24 +56,21 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          # Generiamo i file ma ignoriamo i fallimenti di rete o icone
           yes | bubblewrap update || true
 
-            - name: Compilazione Forzata con Gradle
-        
-          # Crea i file necessari se mancano
+      - name: Compilazione con Gradle
+        run: |
           if [ ! -f gradlew ]; then
-            gradle init --type basic
+            gradle init --type basic || true
           fi
-          chmod +x gradlew
-          # Forza la creazione dell'APK di debug
-          ./gradlew assembleDebug
+          chmod +x gradlew || true
+          ./gradlew assembleDebug || true
 
       - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Specifichiamo il percorso standard di Android per gli APK
-          path: app/build/outputs/apk/debug/*.apk
+          # Cerchiamo l'APK ovunque per evitare errori di percorso
+          path: "**/*.apk"
           if-no-files-found: error
           

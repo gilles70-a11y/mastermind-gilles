@@ -22,13 +22,14 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Finale
+      - name: Build APK Senza Errori
         run: |
           # 1. Configurazione ambiente
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione manuale del file di progetto
+          # 2. Creazione Manifest TWA (Puntiamo ai file LOCALI per le icone)
+          # Usiamo il percorso relativo ./MasterGilles.png invece di un URL https
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -39,8 +40,8 @@ jobs:
             "navigationColor": "#000000",
             "backgroundColor": "#000000",
             "startUrl": "/mastermind-pwa/",
-            "iconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
-            "maskableIconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
+            "iconUrl": "file://'$(pwd)'/MasterGilles.png",
+            "maskableIconUrl": "file://'$(pwd)'/MasterGilles.png",
             "splashScreenFadeOutDuration": 300,
             "shortcuts": [],
             "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
@@ -61,12 +62,13 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
           
-          # 3. PULIZIA E BUILD: "yes" per accettare tutto e "bubblewrap build"
-          # Usiamo "yes" per forzare l'accettazione di ogni licenza o sovrascrittura
-          yes | bubblewrap build --skipSigning
+          # 3. Build finale: usiamo "yes n" per saltare la rigenerazione e forzare la build
+          # Risolviamo il blocco 404 dell'icona caricandola dal disco
+          yes n | bubblewrap build --skipSigning
 
-      - name: Carica APK
+      - name: Scarica APK Finale
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-Release
+          name: Mastermind-Vittoria
           path: ./*.apk
+          

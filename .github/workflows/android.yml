@@ -70,11 +70,12 @@ jobs:
           # Se fallisce per le icone, lui proverà comunque a generare l'APK
           yes "n" | bubblewrap build --skipSigning || true
 
-      - name: Carica APK Finale
+            - name: Carica APK Finale
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-Download-APK
-          path: |
-            ./*.apk
-            ./app/build/outputs/apk/release/*.apk
-            
+          name: Mastermind-APK
+          # Questa riga cercherà in TUTTE le cartelle create
+          path: "**/*.apk"
+          # Se trova più file, non si ferma
+          if-no-files-found: error
+          

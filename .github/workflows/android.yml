@@ -22,51 +22,26 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Finale
+      - name: Generazione e Build Progetto
         run: |
-          # Configurazione ambiente
+          # 1. Configurazione ambiente
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Creazione manuale del file di progetto usando i file locali
-          # Abbiamo verificato che MasterGilles.png esiste nel tuo repo
-          echo '{
-            "packageId": "com.mastermind.gilles",
-            "host": "gilles70-a11y.github.io",
-            "name": "Mastermind",
-            "launcherName": "Mastermind",
-            "display": "standalone",
-            "themeColor": "#000000",
-            "navigationColor": "#000000",
-            "backgroundColor": "#000000",
-            "startUrl": "/mastermind-pwa/",
-            "iconUrl": "file://'$(pwd)'/MasterGilles.png",
-            "maskableIconUrl": "file://'$(pwd)'/MasterGilles.png",
-            "splashScreenFadeOutDuration": 300,
-            "shortcuts": [],
-            "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
-            "fallbackType": "customtabs",
-            "features": { "locationDelegation": false, "playBilling": false },
-            "alphaCode": 1,
-            "minSdkVersion": 19,
-            "targetSdkVersion": 34,
-            "enableNotification": true,
-            "orientation": "any",
-            "fingerprints": [],
-            "additionalTrustedOrigins": [],
-            "retainedBundles": [],
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
-            "signingKey": { "path": "./android.keystore", "alias": "android" },
-            "generatorApp": "bubblewrap-cli",
-            "signingMode": "none"
-          }' > twa-manifest.json
-          
-          # Rispondiamo "no" alla rigenerazione per mantenere il nostro file manuale
-          # E usiamo "yes" per accettare le licenze Android
-          echo "n" | bubblewrap build --skipSigning || yes | bubblewrap build --skipSigning
+          # 2. Inizializzazione FORZATA locale
+          # Usiamo "init" puntando al manifest locale nel repo per generare i file Gradle
+          # Rispondiamo "yes" a tutto per non bloccare il terminale
+          yes | bubblewrap init --manifest=./manifest.json --yes
 
-      - name: Scarica APK
+          # 3. Correzione icone (sovrascriviamo se l'init ha messo URL esterni che falliscono)
+          # Usiamo il file locale che abbiamo visto nel tuo repo
+          sed -i 's|"iconUrl": ".*"|"iconUrl": "file://'$(pwd)'/MasterGilles.png"|g' twa-manifest.json
+          
+          # 4. Build finale
+          # Ora che gradlew esiste (grazie a init), possiamo compilare
+          bubblewrap build --skipSigning
+
+      - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK

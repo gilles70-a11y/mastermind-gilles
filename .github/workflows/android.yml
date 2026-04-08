@@ -1,4 +1,4 @@
-name: Build Android APK Infallibile
+name: Build Android APK Definitivo
 on:
   push:
     branches: [ main ]
@@ -16,22 +16,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Configurazione Ambiente e Chiavi
+      - name: Configurazione Silenziata
         run: |
-          # 1. Configura i percorsi SDK per evitare l'errore "androidSdk isn't correct"
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Crea una chiave di firma temporanea per evitare che la build si fermi a chiedere password
-          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=Mastermind, OU=IT, O=Gilles, L=Italy, S=Italy, C=IT"
-
-      - name: Generazione e Build Forzata
-        run: |
-          # 3. Creiamo un manifest locale perfetto per evitare errori di download icone (status 404)
-          # Usiamo un'icona segnaposto interna di sistema se quella online fallisce
+          # Creiamo il manifest con link sicuri per evitare errori di protocollo
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -42,8 +38,8 @@ jobs:
             "navigationColor": "#000000",
             "backgroundColor": "#000000",
             "startUrl": "/mastermind-pwa/",
-            "iconUrl": "https://via.placeholder.com/512.png",
-            "maskableIconUrl": "https://via.placeholder.com/512.png",
+            "iconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
+            "maskableIconUrl": "https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png",
             "splashScreenFadeOutDuration": 300,
             "shortcuts": [],
             "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
@@ -64,16 +60,20 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          # 4. TRUCCO FINALE: 'yes' invia 'y' a ogni domanda per prevenire l'exit code 130
-          # Usiamo '|| true' per non far fallire lo step se Bubblewrap dà un avviso minore
-          yes "y" | bubblewrap update || true
-          yes "password" | bubblewrap build || true
+          # Usiamo 'yes' per rispondere a ogni singola domanda ed evitare il timeout 130
+          yes | bubblewrap update
 
-      - name: Carica APK Finale
+      - name: Compilazione Brutale (Gradle Direct)
+        run: |
+          # Se Bubblewrap ha fallito a creare il wrapper, lo forziamo noi
+          chmod +x gradlew || true
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Carica APK (Vittoria)
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-APK-Funzionante
-          # Cerchiamo l'APK in modo ricorsivo ovunque sia stato creato
+          name: Mastermind-APK
+          # Cerchiamo l'APK ovunque, senza percorsi fissi che falliscono
           path: "**/*.apk"
           if-no-files-found: error
           

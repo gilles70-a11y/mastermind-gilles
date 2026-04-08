@@ -19,7 +19,7 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Inizializzazione e Generazione Progetto
+      - name: Generazione Progetto
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
@@ -36,8 +36,6 @@ jobs:
             "startUrl": "/mastermind-pwa/",
             "iconUrl": "https://via.placeholder.com/512.png",
             "maskableIconUrl": "https://via.placeholder.com/512.png",
-            "splashScreenFadeOutDuration": 300,
-            "shortcuts": [],
             "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
             "fallbackType": "customtabs",
             "features": { "locationDelegation": false, "playBilling": false },
@@ -46,9 +44,6 @@ jobs:
             "targetSdkVersion": 34,
             "enableNotification": true,
             "orientation": "any",
-            "fingerprints": [],
-            "additionalTrustedOrigins": [],
-            "retainedBundles": [],
             "appVersionName": "1.0.0",
             "appVersionCode": 1,
             "signingKey": { "path": "./android.keystore", "alias": "android" },
@@ -56,21 +51,27 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          yes | bubblewrap update || true
+          yes | bubblewrap init --manifest twa-manifest.json || true
 
-      - name: Compilazione con Gradle
+      - name: Compilazione e Spostamento APK
         run: |
-          if [ ! -f gradlew ]; then
-            gradle init --type basic || true
-          fi
+          # Rendiamo eseguibile il wrapper
           chmod +x gradlew || true
+          
+          # Lanciamo la build
           ./gradlew assembleDebug || true
+          
+          # CREIAMO IL NOSTRO PATH PERSONALIZZATO
+          mkdir -p output_finale
+          
+          # Cerchiamo l'APK ovunque sia stato creato e lo copiamo a forza nella nostra cartella
+          find . -name "*.apk" -exec cp {} ./output_finale/Mastermind.apk \;
 
-      - name: Carica APK
+      - name: Carica APK (Dal Path Certo)
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Cerchiamo l'APK ovunque per evitare errori di percorso
-          path: "**/*.apk"
+          # Ora il path è quello che abbiamo deciso noi sopra
+          path: output_finale/Mastermind.apk
           if-no-files-found: error
           

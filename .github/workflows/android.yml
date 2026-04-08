@@ -24,20 +24,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build APK Rapido
+      - name: Build APK Finale
         run: |
           npm install -g @bubblewrap/cli
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Usiamo l'inizializzazione forzata sul file locale che abbiamo visto nello screenshot
-          yes | bubblewrap init --localManifest=./manifest.json --yes
+          # Parametri completi: URL per la configurazione E file locale per la lettura
+          yes | bubblewrap init --manifest=https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --localManifest=./manifest.json --yes
           
-          # Costruiamo l'APK
+          # Genera l'app
           bubblewrap build --skipSigning
 
-      - name: Scarica APK qui
+      - name: Scarica APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-mastermind-debug
+          name: app-mastermind-final
           path: ./*.apk

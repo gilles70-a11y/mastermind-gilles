@@ -24,7 +24,7 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Corretti gli URL: Bubblewrap vuole URL assoluti validi
+          # URL completi e validi per evitare l'errore "Invalid URL"
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -52,15 +52,15 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          # Usiamo init ma specifichiamo di non fare domande
-          yes | bubblewrap init --manifest twa-manifest.json --skipConfig
+          # Inizializziamo senza chiedere nulla all'utente
+          yes | bubblewrap init --manifest twa-manifest.json --skipConfig || true
 
       - name: Compilazione Forzata
         run: |
-          # Cerchiamo gradlew ovunque e forziamo la build
+          # Cerchiamo il file gradlew ovunque sia stato creato
           GRADLE_BIN=$(find . -name gradlew | head -n 1)
           if [ -z "$GRADLE_BIN" ]; then
-            echo "Errore: Progetto non generato."
+            echo "ERRORE: Sistema di build non trovato."
             exit 1
           fi
           chmod +x "$GRADLE_BIN"
@@ -71,6 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
+          # Cerchiamo ricorsivamente qualsiasi APK generato
           path: "**/*.apk"
           if-no-files-found: error
           

@@ -28,17 +28,18 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Inizializzazione FORZATA locale
-          # Usiamo "init" puntando al manifest locale nel repo per generare i file Gradle
-          # Rispondiamo "yes" a tutto per non bloccare il terminale
-          yes | bubblewrap init --manifest=./manifest.json --yes
-
-          # 3. Correzione icone (sovrascriviamo se l'init ha messo URL esterni che falliscono)
-          # Usiamo il file locale che abbiamo visto nel tuo repo
-          sed -i 's|"iconUrl": ".*"|"iconUrl": "file://'$(pwd)'/MasterGilles.png"|g' twa-manifest.json
+          # 2. Otteniamo il percorso assoluto della cartella corrente
+          CURRENT_DIR=$(pwd)
           
-          # 4. Build finale
-          # Ora che gradlew esiste (grazie a init), possiamo compilare
+          # 3. Inizializzazione usando il file manifest locale con percorso ASSOLUTO
+          # Questo evita l'errore "Invalid URL" visto poco fa
+          yes | bubblewrap init --manifest="file://$CURRENT_DIR/manifest.json" --yes
+
+          # 4. Forziamo l'icona locale nel file di configurazione generato
+          # Usiamo l'icona che abbiamo visto presente nel tuo repository
+          sed -i "s|\"iconUrl\": \".*\"|\"iconUrl\": \"file://$CURRENT_DIR/MasterGilles.png\"|g" twa-manifest.json
+          
+          # 5. Build finale
           bubblewrap build --skipSigning
 
       - name: Carica APK

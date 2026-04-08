@@ -16,17 +16,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
       - name: Build APK Locale
         run: |
-          # 1. Configurazione silenziosa
+          # 1. Configurazione dinamica
+          # Usiamo $ANDROID_HOME che è la variabile ufficiale di GitHub
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione manuale del file di progetto (Bypassiamo l'init che fallisce)
-          # Questo file dice a Bubblewrap esattamente cosa fare senza scaricare nulla
+          # 2. Creazione manuale del file di progetto
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -67,3 +70,4 @@ jobs:
         with:
           name: Mastermind-APK
           path: ./*.apk
+          

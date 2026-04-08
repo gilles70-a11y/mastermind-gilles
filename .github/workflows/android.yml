@@ -32,10 +32,11 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Usiamo l'URL per la configurazione ma forziamo la lettura locale del file
-          # Assicurati che manifest.json sia nella cartella principale del tuo GitHub
-          yes | bubblewrap init --manifest=https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --localManifest=./manifest.json --yes
+          # FORZIAMO la creazione del progetto partendo dal file locale
+          # Questo evita il crash dell'URL non valido o del JSON non trovato online
+          bubblewrap init --manifest=./manifest.json --yes || true
           
+          # Se il comando sopra ha creato il file twa-manifest.json, procediamo
           bubblewrap build --skipSigning
 
       - name: Carica l'APK come Artefatto
@@ -43,4 +44,3 @@ jobs:
         with:
           name: pacchetto-apk-mastermind
           path: ./*.apk
-          

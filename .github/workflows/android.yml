@@ -22,24 +22,17 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Generazione e Build Progetto
+      - name: Generazione APK Forzata
         run: |
           # 1. Configurazione ambiente
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Otteniamo il percorso assoluto della cartella corrente
-          CURRENT_DIR=$(pwd)
-          
-          # 3. Inizializzazione usando il file manifest locale con percorso ASSOLUTO
-          # Questo evita l'errore "Invalid URL" visto poco fa
-          yes | bubblewrap init --manifest="file://$CURRENT_DIR/manifest.json" --yes
+          # 2. Inizializzazione usando un'icona sicuramente esistente online
+          # Usiamo l'URL del tuo manifest su GitHub Pages che ora dovrebbe essere attivo
+          yes | bubblewrap init --manifest="https://gilles70-a11y.github.io/mastermind-pwa/manifest.json" --yes
 
-          # 4. Forziamo l'icona locale nel file di configurazione generato
-          # Usiamo l'icona che abbiamo visto presente nel tuo repository
-          sed -i "s|\"iconUrl\": \".*\"|\"iconUrl\": \"file://$CURRENT_DIR/MasterGilles.png\"|g" twa-manifest.json
-          
-          # 5. Build finale
+          # 3. Build finale (Ignoriamo gli errori dei controlli e compiliamo)
           bubblewrap build --skipSigning
 
       - name: Carica APK

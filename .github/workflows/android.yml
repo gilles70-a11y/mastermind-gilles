@@ -1,4 +1,4 @@
-name: Build Android APK Finale
+name: Build APK con PWABuilder
 on:
   push:
     branches: [ main ]
@@ -10,40 +10,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java e Android SDK
-        uses: actions/setup-java@v4
+      - name: PWA-to-Android
+        id: pwa_details
+        # Questa action automatizza quello che Bubblewrap cercava di fare manualmente
+        uses: pwa-builder/pwa-publish@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          manifest-url: https://gilles70-a11y.github.io/mastermind-pwa/manifest.json
 
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-
-      - name: Inizializzazione Diretta da URL
+      - name: Build APK con Gradle
         run: |
-          mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          
-          # Inizializziamo puntando direttamente al tuo manifest online
-          # Questo evita discrepanze tra il file locale e quello remoto
-          yes | bubblewrap init --manifest https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --skipConfig
-
-      - name: Compilazione Dinamica
-        run: |
-          # Cerchiamo lo script gradlew nella cartella generata
-          GRADLE_BIN=$(find . -name gradlew | head -n 1)
-          if [ -z "$GRADLE_BIN" ]; then
-            echo "ERRORE: Bubblewrap non ha creato il progetto."
-            exit 1
-          fi
-          chmod +x "$GRADLE_BIN"
-          cd $(dirname "$GRADLE_BIN")
+          # PWABuilder scarica i file in una cartella specifica
+          cd ${{ steps.pwa_details.outputs.android-folder }}
+          chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Carica APK
+      - name: Carica l'APK Risultante
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-APK
+          name: Mastermind-Vittoria
           path: "**/*.apk"
-          if-no-files-found: error
           

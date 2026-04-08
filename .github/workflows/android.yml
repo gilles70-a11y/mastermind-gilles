@@ -24,23 +24,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: Configurazione e Build APK
+      - name: Build APK Rapido
         run: |
+          npm install -g @bubblewrap/cli
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # FORZIAMO la creazione del progetto partendo dal file locale
-          # Questo evita il crash dell'URL non valido o del JSON non trovato online
-          bubblewrap init --manifest=./manifest.json --yes || true
+          # Usiamo l'inizializzazione forzata sul file locale che abbiamo visto nello screenshot
+          yes | bubblewrap init --localManifest=./manifest.json --yes
           
-          # Se il comando sopra ha creato il file twa-manifest.json, procediamo
+          # Costruiamo l'APK
           bubblewrap build --skipSigning
 
-      - name: Carica l'APK come Artefatto
+      - name: Scarica APK qui
         uses: actions/upload-artifact@v4
         with:
-          name: pacchetto-apk-mastermind
+          name: app-mastermind-debug
           path: ./*.apk

@@ -19,11 +19,12 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Inizializzazione Progetto
+      - name: Generazione Progetto
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
+          # Corretti gli URL: Bubblewrap vuole URL assoluti validi
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -33,7 +34,7 @@ jobs:
             "themeColor": "#000000",
             "navigationColor": "#000000",
             "backgroundColor": "#000000",
-            "startUrl": "/mastermind-pwa/",
+            "startUrl": "https://gilles70-a11y.github.io/mastermind-pwa/",
             "iconUrl": "https://via.placeholder.com/512.png",
             "maskableIconUrl": "https://via.placeholder.com/512.png",
             "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
@@ -51,32 +52,25 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
 
-          # Forza l'inizializzazione
-          yes | bubblewrap init --manifest twa-manifest.json
+          # Usiamo init ma specifichiamo di non fare domande
+          yes | bubblewrap init --manifest twa-manifest.json --skipConfig
 
-      - name: Compilazione Dinamica (Cerca Sottocartelle)
+      - name: Compilazione Forzata
         run: |
-          # Cerchiamo dove Bubblewrap ha creato il file gradlew
-          GRADLE_PATH=$(find . -name gradlew | head -n 1)
-          if [ -z "$GRADLE_PATH" ]; then
-            echo "ERRORE: gradlew non trovato!"
+          # Cerchiamo gradlew ovunque e forziamo la build
+          GRADLE_BIN=$(find . -name gradlew | head -n 1)
+          if [ -z "$GRADLE_BIN" ]; then
+            echo "Errore: Progetto non generato."
             exit 1
           fi
-          
-          # Estraiamo la cartella che contiene gradlew
-          PROJECT_DIR=$(dirname "$GRADLE_PATH")
-          echo "Progetto trovato in: $PROJECT_DIR"
-          
-          # Entriamo nella cartella ed eseguiamo la build
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
+          chmod +x "$GRADLE_BIN"
+          cd $(dirname "$GRADLE_BIN")
           ./gradlew assembleDebug
 
       - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Cerchiamo l'APK in tutto il workspace, ignorando i percorsi fissi
           path: "**/*.apk"
           if-no-files-found: error
           

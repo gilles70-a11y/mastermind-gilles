@@ -1,7 +1,7 @@
 name: Build Android APK
 on:
   push:
-    branches: [ main ] # Si attiva quando fai il push su main
+    branches: [ main ]
 
 jobs:
   build:
@@ -9,6 +9,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -18,21 +27,23 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK (Automatico)
+      - name: Configurazione e Build APK
         run: |
-          # Accetta licenze e installa dipendenze (JDK/SDK) in automatico
-          echo "y" | bubblewrap doctor --confirm
+          # Creiamo la cartella di configurazione per evitare domande interattive
+          mkdir -p ~/.bubblewrap
           
-          # Inizializza il progetto. 
-          # IMPORTANTE: Sostituisci l'URL qui sotto con quello del tuo sito/manifest!
-          yes | bubblewrap init --manifest=https://TUO-SITO-QUI.com/manifest.json --yes
+          # Diciamo a Bubblewrap dove trovare Java e Android SDK già installati
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Genera l'APK saltando la firma digitale per i test
+          # Inizializziamo il progetto con il tuo URL reale
+          # Nota: 'yes' risponde automaticamente a eventuali conferme residue
+          yes | bubblewrap init --manifest=https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --yes
+          
+          # Costruiamo l'APK finale saltando la firma (per uso test/personale)
           bubblewrap build --skipSigning
 
       - name: Carica l'APK come Artefatto
         uses: actions/upload-artifact@v4
         with:
-          name: pacchetto-apk-pwa
+          name: pacchetto-apk-mastermind
           path: ./*.apk
-          

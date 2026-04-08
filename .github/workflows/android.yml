@@ -22,14 +22,14 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Senza Errori
+      - name: Build APK Finale
         run: |
-          # 1. Configurazione ambiente
+          # Configurazione ambiente
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione Manifest TWA (Puntiamo ai file LOCALI per le icone)
-          # Usiamo il percorso relativo ./MasterGilles.png invece di un URL https
+          # Creazione manuale del file di progetto usando i file locali
+          # Abbiamo verificato che MasterGilles.png esiste nel tuo repo
           echo '{
             "packageId": "com.mastermind.gilles",
             "host": "gilles70-a11y.github.io",
@@ -62,13 +62,13 @@ jobs:
             "signingMode": "none"
           }' > twa-manifest.json
           
-          # 3. Build finale: usiamo "yes n" per saltare la rigenerazione e forzare la build
-          # Risolviamo il blocco 404 dell'icona caricandola dal disco
-          yes n | bubblewrap build --skipSigning
+          # Rispondiamo "no" alla rigenerazione per mantenere il nostro file manuale
+          # E usiamo "yes" per accettare le licenze Android
+          echo "n" | bubblewrap build --skipSigning || yes | bubblewrap build --skipSigning
 
-      - name: Scarica APK Finale
+      - name: Scarica APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-Vittoria
+          name: Mastermind-APK
           path: ./*.apk
           

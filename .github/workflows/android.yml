@@ -19,55 +19,23 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Generazione Progetto Corazzata
+      - name: Inizializzazione Diretta da URL
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # Usiamo solo gli URL essenziali e certifichiamo che siano validi
-          echo '{
-            "packageId": "com.mastermind.gilles",
-            "host": "gilles70-a11y.github.io",
-            "name": "Mastermind",
-            "launcherName": "Mastermind",
-            "display": "standalone",
-            "themeColor": "#000000",
-            "navigationColor": "#000000",
-            "backgroundColor": "#000000",
-            "startUrl": "https://gilles70-a11y.github.io/mastermind-pwa/",
-            "webManifestUrl": "https://gilles70-a11y.github.io/mastermind-pwa/manifest.json",
-            "fallbackType": "customtabs",
-            "features": { "locationDelegation": false, "playBilling": false },
-            "alphaCode": 1,
-            "minSdkVersion": 19,
-            "targetSdkVersion": 34,
-            "enableNotification": false,
-            "orientation": "any",
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
-            "signingKey": { "path": "./android.keystore", "alias": "android" },
-            "generatorApp": "bubblewrap-cli",
-            "signingMode": "none"
-          }' > twa-manifest.json
+          # Inizializziamo puntando direttamente al tuo manifest online
+          # Questo evita discrepanze tra il file locale e quello remoto
+          yes | bubblewrap init --manifest https://gilles70-a11y.github.io/mastermind-pwa/manifest.json --skipConfig
 
-          # Usiamo 'init' ma se fallisce per l'URL, non fermiamo il job qui
-          yes | bubblewrap init --manifest twa-manifest.json --skipConfig || echo "Bubblewrap init fallito, procedo con recupero manuale"
-
-      - name: Compilazione e Recupero
+      - name: Compilazione Dinamica
         run: |
-          # Se Bubblewrap ha fallito l'init, proviamo a generare i file minimi di Gradle
-          if [ ! -f "gradlew" ] && [ ! -f "gilles70-a11y.github.io/gradlew" ]; then
-             echo "Tentativo di generazione manuale della struttura Android..."
-             gradle init --type basic --quiet
-          fi
-
-          # Cerchiamo il file gradlew ovunque
+          # Cerchiamo lo script gradlew nella cartella generata
           GRADLE_BIN=$(find . -name gradlew | head -n 1)
           if [ -z "$GRADLE_BIN" ]; then
-            echo "ERRORE: Impossibile trovare o creare il sistema di build."
+            echo "ERRORE: Bubblewrap non ha creato il progetto."
             exit 1
           fi
-          
           chmod +x "$GRADLE_BIN"
           cd $(dirname "$GRADLE_BIN")
           ./gradlew assembleDebug

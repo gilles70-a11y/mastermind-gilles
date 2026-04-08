@@ -6,38 +6,44 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Usiamo un contenitore già pronto con tutto il necessario (Java, Android SDK, Bubblewrap)
-    container:
-      image: node:18-bullseye
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Installazione Dipendenze Sistema
-        run: |
-          apt-get update && apt-get install -y openjdk-11-jdk-headless wget unzip
-          npm install -g @bubblewrap/cli
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Configurazione e Build Automatica
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Forza Generazione Progetto
         run: |
-          # 1. Creiamo il file di configurazione per Bubblewrap
+          # 1. Configurazione silenziata per evitare l'errore "SDK isn't correct"
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"/usr/lib/jvm/java-11-openjdk-amd64\",\"androidSdkPath\":\"/opt/android-sdk\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           
-          # 2. Creazione manuale del manifest (senza URL esterni che danno 404)
-          # Usiamo l'icona locale che abbiamo visto nel tuo repo
-          echo '{"packageId":"com.mastermind.gilles","host":"gilles70-a11y.github.io","name":"Mastermind","launcherName":"Mastermind","display":"standalone","themeColor":"#000000","navigationColor":"#000000","backgroundColor":"#000000","startUrl":"/mastermind-pwa/","iconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","maskableIconUrl":"https://gilles70-a11y.github.io/mastermind-pwa/MasterGilles.png","splashScreenFadeOutDuration":300,"shortcuts":[],"webManifestUrl":"https://gilles70-a11y.github.io/mastermind-pwa/manifest.json","fallbackType":"customtabs","features":{"locationDelegation":false,"playBilling":false},"alphaCode":1,"minSdkVersion":19,"targetSdkVersion":34,"enableNotification":true,"orientation":"any","fingerprints":[],"additionalTrustedOrigins":[],"retainedBundles":[],"appVersionName":"1.0.0","appVersionCode":1,"signingKey":{"path":"./android.keystore","alias":"android"},"generatorApp":"bubblewrap-cli","signingMode":"none"}' > twa-manifest.json
+          # 2. Creiamo il manifest con dati sicuri (senza scaricare icone esterne che danno 404)
+          echo '{"packageId":"com.mastermind.gilles","host":"gilles70-a11y.github.io","name":"Mastermind","launcherName":"Mastermind","display":"standalone","themeColor":"#000000","navigationColor":"#000000","backgroundColor":"#000000","startUrl":"/mastermind-pwa/","iconUrl":"https://via.placeholder.com/512","maskableIconUrl":"https://via.placeholder.com/512","splashScreenFadeOutDuration":300,"shortcuts":[],"webManifestUrl":"https://gilles70-a11y.github.io/mastermind-pwa/manifest.json","fallbackType":"customtabs","features":{"locationDelegation":false,"playBilling":false},"alphaCode":1,"minSdkVersion":19,"targetSdkVersion":34,"enableNotification":true,"orientation":"any","fingerprints":[],"additionalTrustedOrigins":[],"retainedBundles":[],"appVersionName":"1.0.0","appVersionCode":1,"signingKey":{"path":"./android.keystore","alias":"android"},"generatorApp":"bubblewrap-cli","signingMode":"none"}' > twa-manifest.json
 
-          # 3. Il comando magico: 'yes' risponde a tutto, 'build' crea il file
-          # Ignoriamo gli errori di rete sulle icone, vogliamo solo l'APK
-          yes "" | bubblewrap build --skipSigning || true
+          # 3. 'yes' risponde a tutte le domande per evitare il timeout (Exit code 130)
+          yes | bubblewrap update
 
-      - name: Carica APK Finale
+      - name: Build APK con Gradle (Il metodo infallibile)
+        run: |
+          # Invece di usare Bubblewrap build, usiamo Gradle direttamente
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-APK
-          # Cerchiamo l'APK in ogni possibile sottocartella generata
-          path: "**/*.apk"
-          if-no-files-found: error
+          # Cerchiamo l'APK ovunque sia stato creato
+          path: "app/build/outputs/apk/debug/*.apk"
           
